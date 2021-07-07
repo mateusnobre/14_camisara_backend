@@ -1,36 +1,35 @@
-import pg from 'pg';
+import pg from "pg";
 
 const { Pool } = pg;
 
-const user = 'postgres';
-const password = 'h4ck3rismo';
-const host = 'localhost';
+const user = "postgres";
+const password = "123456";
+const host = "localhost";
 const port = 5432;
-const database = 'camisara';
+const database = "camisara";
 
 const databaseConfig = {
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false
-  }
-}
+    rejectUnauthorized: false,
+  },
+};
 
-function get_connection(){
+function get_connection() {
   if (process.env.DATABASE_URL) {
     const connection = new Pool(databaseConfig);
-    return connection
-  }
-  else {
+    return connection;
+  } else {
     const connection = new Pool({
       user,
       password,
       host,
       port,
-      database
+      database,
     });
-    return connection
+    return connection;
   }
 }
 
-const connection = get_connection()
-export default connection
+const connection = get_connection();
+export default connection;
