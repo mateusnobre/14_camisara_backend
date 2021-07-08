@@ -6,7 +6,7 @@ const user = "postgres";
 const password = "123456";
 const host = "localhost";
 const port = 5432;
-const database = "camisara";
+const database = process.env.NODE_ENV ? "camisara_test" : "camisara";
 
 const databaseConfig = {
   connectionString: process.env.DATABASE_URL,
