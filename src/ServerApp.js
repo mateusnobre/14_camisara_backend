@@ -27,7 +27,6 @@ app.post("/sign-up", async (req, res) => {
 
     return res.sendStatus(201);
   } catch (err) {
-    console.log(err.message);
     if (
       err.message ===
       'duplicate key value violates unique constraint "email_unique"'
@@ -62,7 +61,6 @@ app.post("/login", async (req, res) => {
 
     return res.status(200).send({ token });
   } catch (error) {
-    console.log(error.message);
     if (error.message === "Authentication Error") return res.sendStatus(409);
     return res.sendStatus(404);
   }

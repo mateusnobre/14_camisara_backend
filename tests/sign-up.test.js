@@ -3,9 +3,9 @@ import app from "../src/ServerApp.js";
 import supertest from "supertest";
 
 const testUser = {
-  name: "Mateus Nobre",
-  email: "mateus@bootcamp.com.br",
-  password: "projeto_top",
+  username: "Username",
+  email: "email@bootcamp.com.br",
+  password: "password",
 };
 
 beforeEach(async () => {
@@ -15,7 +15,7 @@ beforeEach(async () => {
 describe("POST /sign-up", () => {
   it("returns 201 for valid params", async () => {
     const body = {
-      username: testUser.name,
+      username: testUser.username,
       password: testUser.password,
       email: testUser.email,
     };
@@ -23,9 +23,10 @@ describe("POST /sign-up", () => {
     const status = result.status;
     expect(status).toEqual(201);
   });
+
   it("returns 409 for duplicate emails", async () => {
     const body = {
-      username: testUser.name,
+      username: testUser.username,
       password: testUser.password,
       email: testUser.email,
     };
@@ -34,6 +35,7 @@ describe("POST /sign-up", () => {
     const result2 = await supertest(app).post("/sign-up").send(body);
     expect(result2.status).toEqual(409);
   });
+
   it("returns 404 for bad request", async () => {
     const missingName = {
       password: testUser.password,
@@ -45,7 +47,7 @@ describe("POST /sign-up", () => {
     expect(missingNameResult.status).toEqual(404);
 
     const missingPassword = {
-      username: testUser.name,
+      username: testUser.username,
       email: testUser.email,
     };
     const missingPasswordResult = await supertest(app)
@@ -54,7 +56,7 @@ describe("POST /sign-up", () => {
     expect(missingPasswordResult.status).toEqual(404);
 
     const missingEmail = {
-      username: testUser.name,
+      username: testUser.username,
       password: testUser.password,
     };
     const missingEmailResult = await supertest(app)
