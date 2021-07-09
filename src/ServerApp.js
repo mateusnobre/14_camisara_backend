@@ -42,25 +42,46 @@ app.post("/login", async (req, res) => {
 
     await loginSchema.validateAsync({ email, password });
 
-    const result = await connection.query(
+    const searchQuery = await connection.query(
       `SELECT * 
       FROM users 
       WHERE email = $1`,
       [email]
     );
 
-    const user = result.rows[0];
+    const user = searchQuery.rows[0];
 
     if (!user || !(await bcrypt.compare(password, user.password)))
       throw Error("Authentication Error");
 
+    let sessionQuery = await connection.query(
+      `SELECT *
+       FROM sessions
+       WHERE user_id = $1`,
+      [user.id]
+    );
+
+    if (!sessionQuery.rowCount) {
+      let date = new Date();
+
+      sessionQuery = await connection.query(
+        `INSERT INTO
+        sessions (user_id, created_at)
+        VALUES
+        ($1, $2)
+        RETURNING id`,
+        [user.id, date]
+      );
+    }
+
     const privateKey = process.env.JWT_SECRET;
-    const config = { expiresIn: 60 * 60 };
+    const config = { expiresIn: 60 * 60 }; // expires in 1 hour
 
-    const token = jwt.sign({ id: user.id }, privateKey, config);
+    const token = jwt.sign({ id: sessionQuery.rows[0].id }, privateKey, config);
 
-    return res.status(200).send({ token });
+    return res.status(200).send({ user, token });
   } catch (error) {
+    console.log(error.message);
     if (error.message === "Authentication Error") return res.sendStatus(409);
     return res.sendStatus(404);
   }
