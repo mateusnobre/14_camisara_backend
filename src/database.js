@@ -2,12 +2,6 @@ import pg from "pg";
 
 const { Pool } = pg;
 
-const user = "postgres";
-const password = "123456";
-const host = "localhost";
-const port = 5432;
-const database = process.env.NODE_ENV ? "camisara_test" : "camisara";
-
 const databaseConfig = {
   connectionString: process.env.DATABASE_URL,
   ssl: {
@@ -21,11 +15,14 @@ function get_connection() {
     return connection;
   } else {
     const connection = new Pool({
-      user,
-      password,
-      host,
-      port,
-      database,
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      port: process.env.DB_PORT,
+      database:
+        process.env.NODE_ENV === "test"
+          ? process.env.DB_DATABASE_TEST
+          : process.env.DB_DATABASE,
     });
     return connection;
   }
