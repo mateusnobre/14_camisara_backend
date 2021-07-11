@@ -100,21 +100,37 @@ app.get("/product/:id", async (req, res) => {
 
     if (!productQuery.rowCount) throw Error("Invalid product");
 
+    const responseObject = {
+      ...productQuery.rows[0],
+    };
+
+    return res.send(responseObject);
+  } catch (err) {
+    return res.sendStatus(404);
+  }
+});
+
+app.get("/evaluation/:product_id", async (req, res) => {
+  try {
+    const { product_id } = req.params;
+
     const evaluationStarsQuery = await connection.query(
       `SELECT COUNT(title) 
        FROM evaluations
        WHERE product_id = $1
        GROUP by rating
        ORDER by rating`,
-      [id]
+      [product_id]
     );
+
+    if (!evaluationStarsQuery.rowCount) throw Error("Invalid Product");
 
     const evaluationAverageQuery = await connection.query(
       `SELECT COUNT(*),
        ROUND( AVG(rating), 2) AS avg
        FROM evaluations
        WHERE product_id = $1`,
-      [id]
+      [product_id]
     );
 
     const evaluationQuery = await connection.query(
@@ -123,7 +139,7 @@ app.get("/product/:id", async (req, res) => {
        JOIN users AS u
        ON e.user_id = u.id
        WHERE product_id = $1`,
-      [id]
+      [product_id]
     );
 
     const numberEvaluations = {
@@ -132,16 +148,11 @@ app.get("/product/:id", async (req, res) => {
     delete numberEvaluations[0];
     numberEvaluations["total"] = evaluationAverageQuery.rows[0].count;
 
-    const responseObject = {
-      ...productQuery.rows[0],
-      evaluations: {
-        avgRating: evaluationAverageQuery.rows[0].avg,
-        numberEvaluations,
-        usersEvaluations: evaluationQuery.rows,
-      },
-    };
-
-    return res.send(responseObject);
+    return res.send({
+      avgRating: evaluationAverageQuery.rows[0].avg,
+      numberEvaluations,
+      usersEvaluations: evaluationQuery.rows,
+    });
   } catch (err) {
     console.log(err.message);
     return res.sendStatus(404);
