@@ -79,10 +79,73 @@ app.post("/login", async (req, res) => {
 
     const token = jwt.sign({ id: sessionQuery.rows[0].id }, privateKey, config);
 
-    return res.status(200).send({ user, token });
+    const userResponse = { username: user.name, email: user.email };
+
+    return res.status(200).send({ user: userResponse, token });
   } catch (error) {
     console.log(error.message);
     if (error.message === "Authentication Error") return res.sendStatus(409);
+    return res.sendStatus(404);
+  }
+});
+
+app.get("/product/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const productQuery = await connection.query(
+      `SELECT *
+       FROM products
+       WHERE id = $1`,
+      [id]
+    );
+
+    if (!productQuery.rowCount) throw Error("Invalid product");
+
+    const evaluationStarsQuery = await connection.query(
+      `SELECT COUNT(title) 
+       FROM evaluations
+       WHERE product_id = $1
+       GROUP by rating
+       ORDER by rating`,
+      [id]
+    );
+
+    const evaluationAverageQuery = await connection.query(
+      `SELECT COUNT(*),
+       ROUND( AVG(rating), 2) AS avg
+       FROM evaluations
+       WHERE product_id = $1`,
+      [id]
+    );
+
+    const evaluationQuery = await connection.query(
+      `SELECT u.name, e.evaluated_at, e.rating, e.opinion, e.title
+       FROM evaluations AS e
+       JOIN users AS u
+       ON e.user_id = u.id
+       WHERE product_id = $1`,
+      [id]
+    );
+
+    const numberEvaluations = {
+      ...[0, ...evaluationStarsQuery.rows.map((row) => row.count)],
+    };
+    delete numberEvaluations[0];
+    numberEvaluations["total"] = evaluationAverageQuery.rows[0].count;
+
+    const responseObject = {
+      ...productQuery.rows[0],
+      evaluations: {
+        avgRating: evaluationAverageQuery.rows[0].avg,
+        numberEvaluations,
+        usersEvaluations: evaluationQuery.rows,
+      },
+    };
+
+    return res.send(responseObject);
+  } catch (err) {
+    console.log(err.message);
     return res.sendStatus(404);
   }
 });
