@@ -14,3 +14,9 @@ export const loginSchema = Joi.object({
     .required(),
   password: Joi.string().required(),
 });
+
+export const evaluationsSchema = Joi.object({
+  rating: Joi.number().required(),
+  title: Joi.string().required(),
+  opinion: Joi.string().required(),
+});

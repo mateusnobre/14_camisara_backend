@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import express from "express";
 import cors from "cors";
 import connection from "./database.js";
-import { loginSchema, signUpSchema } from "./schemas.js";
+import { evaluationsSchema, loginSchema, signUpSchema } from "./schemas.js";
 import jwt from "jsonwebtoken";
 const app = express();
 app.use(cors());
@@ -83,8 +83,7 @@ app.post("/login", async (req, res) => {
 
     return res.status(200).send({ user: userResponse, token });
   } catch (error) {
-    console.log(error.message);
-    if (error.message === "Authentication Error") return res.sendStatus(409);
+    if (error.message === "Authentication Error") return res.sendStatus(401);
     return res.sendStatus(404);
   }
 });
@@ -92,7 +91,6 @@ app.post("/login", async (req, res) => {
 app.get("/product/:id", async (req, res) => {
   try {
     const { id } = req.params;
-
     const productQuery = await connection.query(
       `SELECT *
        FROM products
@@ -147,6 +145,47 @@ app.get("/product/:id", async (req, res) => {
   } catch (err) {
     console.log(err.message);
     return res.sendStatus(404);
+  }
+});
+
+app.post("/evaluation/:product_id", async (req, res) => {
+  try {
+    const authorization = req.headers["authorization"];
+    const token = authorization?.replace("Bearer ", "");
+    const privateKey = process.env.JWT_SECRET;
+
+    if (!token) throw Error("invalid token");
+
+    const sessionId = jwt.verify(token, privateKey).id;
+    const { product_id } = req.params;
+    const { rating, title, opinion } = req.body;
+
+    await evaluationsSchema.validateAsync({ rating, title, opinion });
+
+    const user_id = (
+      await connection.query(
+        `SELECT user_id
+        FROM sessions
+        WHERE id = $1`,
+        [sessionId]
+      )
+    ).rows[0].user_id;
+    const date = new Date();
+
+    await connection.query(
+      `INSERT INTO
+       evaluations (product_id, user_id, evaluated_at, rating, title, opinion)
+       VALUES
+       ($1, $2, $3, $4, $5, $6)`,
+      [product_id, user_id, date, rating, title, opinion]
+    );
+
+    return res.send({ sessionId, product_id });
+  } catch (err) {
+    console.log(err.message);
+    if (err.message === "invalid token") return res.sendStatus(401);
+    if (err.message === "jwt expired") return res.sendStatus(403);
+    return res.sendStatus(400);
   }
 });
 

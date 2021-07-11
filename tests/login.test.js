@@ -25,7 +25,7 @@ describe("POST /login", () => {
     expect(status2).toEqual(200);
   });
 
-  it("returns 409 for authentication error", async () => {
+  it("returns 401 for authentication error", async () => {
     const invalidEmailBody = {
       email: "nonexisting@email.com",
       password: "123456",
@@ -41,7 +41,7 @@ describe("POST /login", () => {
       .post("/login")
       .send(invalidPasswordBody);
     const invalidPasswordstatus = invalidPasswordResult.status;
-    expect(invalidPasswordstatus).toEqual(409);
+    expect(invalidPasswordstatus).toEqual(401);
   });
 
   it("returns 404 for bad request", async () => {
