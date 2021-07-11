@@ -9,3 +9,6 @@ checkPostgres &&
 
 echo "Destruindo banco de dados..." &&
 destroyDatabase $DATABASE;
+
+echo "Destruindo banco de dados de teste..." &&
+destroyDatabase "${DATABASE}_test;

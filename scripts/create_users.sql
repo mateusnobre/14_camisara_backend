@@ -3,5 +3,6 @@ CREATE TABLE users (
     "name" text,
     email text,
     "password" text,
-    created_at timestamp
+    created_at timestamp,
+    CONSTRAINT email_unique UNIQUE (email)
 )
