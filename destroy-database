@@ -8,7 +8,7 @@ echo "Checando status do postgres..." &&
 checkPostgres &&
 
 echo "Destruindo banco de dados..." &&
-destroyDatabase $DATABASE;
+destroyDatabase $DATABASE
 
 echo "Destruindo banco de dados de teste..." &&
-destroyDatabase "${DATABASE}_test;
+destroyDatabase "${DATABASE}_test";
