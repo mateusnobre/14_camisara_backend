@@ -20,3 +20,7 @@ export const evaluationsSchema = Joi.object({
   title: Joi.string().required(),
   opinion: Joi.string().required(),
 });
+
+export const purchaseSchema = Joi.object({
+  quantity: Joi.number().required(),
+});
