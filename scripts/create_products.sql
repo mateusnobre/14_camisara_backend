@@ -1,8 +1,10 @@
 CREATE TABLE products (
     id SERIAL PRIMARY KEY,
     title TEXT,
-    price FLOAT,
-    "description" TEXT,
-    "image" TEXT,
-    rating FLOAT
+    price DOUBLE PRECISION,
+    description TEXT,
+    sizes TEXT[],
+    main_image TEXT,
+    images TEXT[],
+    CONSTRAINT price_unique UNIQUE (title)
 )

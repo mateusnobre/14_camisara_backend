@@ -2,7 +2,6 @@ import connection from "../src/database.js";
 import app from "../src/ServerApp.js";
 import supertest from "supertest";
 
-
 //beforeEach(async () => {
 //  await connection.query("DELETE FROM products");
 //});
