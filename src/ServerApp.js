@@ -326,8 +326,10 @@ app.get("/purchases", async (req, res) => {
     ).rows[0].user_id;
 
     const result = await connection.query(
-      `SELECT *
-       FROM purchases
+      `SELECT pu.quantity, pu.updated_at, pr.title, pr.price, pr.main_image
+       FROM purchases AS pu
+       JOIN products AS pr
+       ON pr.id = pu.product_id
        WHERE user_id = $1`,
       [user_id]
     );
@@ -358,9 +360,11 @@ app.get("/wishlist", async (req, res) => {
     ).rows[0].user_id;
 
     const result = await connection.query(
-      `SELECT *
-       FROM wishlists
-       WHERE user_id = $1`,
+      `SELECT pr.title, pr.price, pr.main_image
+      FROM wishlists as w
+      join products as pr
+      on pr.id = w.product_id
+      WHERE user_id = $1`,
       [user_id]
     );
 
