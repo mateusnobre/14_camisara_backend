@@ -311,4 +311,68 @@ app.post("/wishlist/:product_id", async (req, res) => {
   }
 });
 
+app.get("/purchases", async (req, res) => {
+  try {
+    const authorization = req.headers["authorization"];
+    const token = authorization?.replace("Bearer ", "");
+    const privateKey = process.env.JWT_SECRET;
+
+    if (!token) throw Error("invalid token");
+
+    const sessionId = jwt.verify(token, privateKey).id;
+
+    const user_id = (
+      await connection.query(
+        `SELECT user_id
+        FROM sessions
+        WHERE id = $1`,
+        [sessionId]
+      )
+    ).rows[0].user_id;
+
+    const result = await connection.query(
+      `SELECT *
+       FROM purchases
+       WHERE user_id = $1`,
+      [user_id]
+    );
+
+    return res.send(result.rows);
+  } catch (err) {
+    return res.sendStatus(404);
+  }
+});
+
+app.get("/wishlist", async (req, res) => {
+  try {
+    const authorization = req.headers["authorization"];
+    const token = authorization?.replace("Bearer ", "");
+    const privateKey = process.env.JWT_SECRET;
+
+    if (!token) throw Error("invalid token");
+
+    const sessionId = jwt.verify(token, privateKey).id;
+
+    const user_id = (
+      await connection.query(
+        `SELECT user_id
+        FROM sessions
+        WHERE id = $1`,
+        [sessionId]
+      )
+    ).rows[0].user_id;
+
+    const result = await connection.query(
+      `SELECT *
+       FROM wishlists
+       WHERE user_id = $1`,
+      [user_id]
+    );
+
+    return res.send(result.rows);
+  } catch (err) {
+    return res.sendStatus(404);
+  }
+});
+
 export default app;
