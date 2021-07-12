@@ -34,7 +34,7 @@ describe("POST /login", () => {
       .post("/login")
       .send(invalidEmailBody);
     const invalidEmailstatus = invalidEmailResult.status;
-    expect(invalidEmailstatus).toEqual(409);
+    expect(invalidEmailstatus).toEqual(401);
 
     const invalidPasswordBody = { email: testUser.email, password: "123456" };
     const invalidPasswordResult = await supertest(app)
@@ -44,7 +44,7 @@ describe("POST /login", () => {
     expect(invalidPasswordstatus).toEqual(401);
   });
 
-  it("returns 404 for bad request", async () => {
+  it("returns 400 for bad request", async () => {
     const invalidEmailBody = {
       password: testUser.password,
     };
@@ -52,14 +52,14 @@ describe("POST /login", () => {
       .post("/login")
       .send(invalidEmailBody);
     const invalidEmailstatus = invalidEmailResult.status;
-    expect(invalidEmailstatus).toEqual(404);
+    expect(invalidEmailstatus).toEqual(400);
 
     const invalidPasswordBody = { email: testUser.email };
     const invalidPasswordResult = await supertest(app)
       .post("/login")
       .send(invalidPasswordBody);
     const invalidPasswordstatus = invalidPasswordResult.status;
-    expect(invalidPasswordstatus).toEqual(404);
+    expect(invalidPasswordstatus).toEqual(400);
   });
 });
 
