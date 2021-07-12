@@ -83,7 +83,6 @@ app.post("/login", async (req, res) => {
 
     return res.status(200).send({ user: userResponse, token });
   } catch (error) {
-    console.log(error.message);
     if (error.message === "Authentication Error") return res.sendStatus(401);
     return res.sendStatus(400);
   }
@@ -155,7 +154,6 @@ app.get("/evaluation/:product_id", async (req, res) => {
       usersEvaluations: evaluationQuery.rows,
     });
   } catch (err) {
-    console.log(err.message);
     return res.sendStatus(404);
   }
 });
@@ -194,7 +192,6 @@ app.post("/evaluation/:product_id", async (req, res) => {
 
     return res.send({ sessionId, product_id });
   } catch (err) {
-    console.log(err.message);
     if (err.message === "invalid token") return res.sendStatus(401);
     if (err.message === "jwt expired") return res.sendStatus(403);
     return res.sendStatus(400);
@@ -246,7 +243,6 @@ app.post("/purchase/:product_id", async (req, res) => {
 
     if (searchQuery.rowCount) {
       const newQuantity = searchQuery.rows[0].quantity + quantity;
-      console.log(newQuantity);
       await connection.query(
         `UPDATE purchases
          SET quantity = $1 , updated_at = $2
@@ -265,7 +261,6 @@ app.post("/purchase/:product_id", async (req, res) => {
       return res.sendStatus(201);
     }
   } catch (err) {
-    console.log(err.message);
     if (err.message === "invalid token") return res.sendStatus(401);
     if (err.message === "jwt expired") return res.sendStatus(403);
     return res.sendStatus(400);
