@@ -192,7 +192,8 @@ app.post("/evaluation/:product_id", async (req, res) => {
 
     return res.send({ sessionId, product_id });
   } catch (err) {
-    if (err.message === "invalid token") return res.sendStatus(401);
+    if (err.message === "invalid token" || err.message === "invalid signature")
+      return res.sendStatus(401);
     if (err.message === "jwt expired") return res.sendStatus(403);
     return res.sendStatus(400);
   }
@@ -249,7 +250,6 @@ app.post("/purchase/:product_id", async (req, res) => {
          WHERE user_id = $3 AND product_id = $4`,
         [newQuantity, date, user_id, product_id]
       );
-      return res.sendStatus(200);
     } else {
       await connection.query(
         `INSERT INTO
@@ -258,10 +258,11 @@ app.post("/purchase/:product_id", async (req, res) => {
          ($1, $2, $3, $4)`,
         [user_id, product_id, quantity, date]
       );
-      return res.sendStatus(201);
     }
+    return res.sendStatus(200);
   } catch (err) {
-    if (err.message === "invalid token") return res.sendStatus(401);
+    if (err.message === "invalid token" || err.message === "invalid signature")
+      return res.sendStatus(401);
     if (err.message === "jwt expired") return res.sendStatus(403);
     return res.sendStatus(400);
   }
@@ -297,9 +298,13 @@ app.post("/wishlist/:product_id", async (req, res) => {
     );
     return res.sendStatus(201);
   } catch (err) {
+    console.log(err.message);
+    if (err.message === "invalid token" || err.message === "invalid signature")
+      return res.sendStatus(401);
     if (
+      err.message === "jwt expired" ||
       err.message ===
-      'duplicate key value violates unique constraint "wishlist_unique"'
+        'duplicate key value violates unique constraint "wishlist_unique"'
     )
       return res.sendStatus(403);
     return res.sendStatus(400);
@@ -336,7 +341,9 @@ app.get("/purchases", async (req, res) => {
 
     return res.send(result.rows);
   } catch (err) {
-    return res.sendStatus(404);
+    if (err.message === "invalid token" || err.message === "invalid signature")
+      return res.sendStatus(401);
+    return res.sendStatus(400);
   }
 });
 
@@ -370,6 +377,8 @@ app.get("/wishlist", async (req, res) => {
 
     return res.send(result.rows);
   } catch (err) {
+    if (err.message === "invalid token" || err.message === "invalid signature")
+      return res.sendStatus(401);
     return res.sendStatus(404);
   }
 });
