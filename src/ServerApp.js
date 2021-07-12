@@ -75,7 +75,7 @@ app.post("/login", async (req, res) => {
     }
 
     const privateKey = process.env.JWT_SECRET;
-    const config = { expiresIn: 60 * 60 }; // expires in 1 hour
+    const config = { expiresIn: 60 * 60 * 24 * 7 }; // expires in 1 week
 
     const token = jwt.sign({ id: sessionQuery.rows[0].id }, privateKey, config);
 
@@ -83,8 +83,9 @@ app.post("/login", async (req, res) => {
 
     return res.status(200).send({ user: userResponse, token });
   } catch (error) {
+    console.log(error.message);
     if (error.message === "Authentication Error") return res.sendStatus(401);
-    return res.sendStatus(404);
+    return res.sendStatus(400);
   }
 });
 
@@ -213,16 +214,101 @@ app.get("/products", async (req, res) => {
   }
 });
 
-app.get("/products", async(req, res) => {
+app.post("/purchase/:product_id", async (req, res) => {
   try {
-    const result = await connection.query(
-      `SELECT * 
-      FROM products `);
-    const data = result.rows[0];
-    return res.status(200).send(data);
-  } catch (error) {
-    return res.sendStatus(404);
-  }
+    const authorization = req.headers["authorization"];
+    const token = authorization?.replace("Bearer ", "");
+    const privateKey = process.env.JWT_SECRET;
 
-})
+    if (!token) throw Error("invalid token");
+
+    const sessionId = jwt.verify(token, privateKey).id;
+
+    const user_id = (
+      await connection.query(
+        `SELECT user_id
+        FROM sessions
+        WHERE id = $1`,
+        [sessionId]
+      )
+    ).rows[0].user_id;
+
+    const { product_id } = req.params;
+    const { quantity } = req.body;
+    const date = new Date();
+
+    const searchQuery = await connection.query(
+      `SELECT *
+       FROM purchases
+       WHERE user_id = $1 AND product_id = $2`,
+      [user_id, product_id]
+    );
+
+    if (searchQuery.rowCount) {
+      const newQuantity = searchQuery.rows[0].quantity + quantity;
+      console.log(newQuantity);
+      await connection.query(
+        `UPDATE purchases
+         SET quantity = $1 , updated_at = $2
+         WHERE user_id = $3 AND product_id = $4`,
+        [newQuantity, date, user_id, product_id]
+      );
+      return res.sendStatus(200);
+    } else {
+      await connection.query(
+        `INSERT INTO
+         purchases (user_id, product_id, quantity, updated_at)
+         VALUES
+         ($1, $2, $3, $4)`,
+        [user_id, product_id, quantity, date]
+      );
+      return res.sendStatus(201);
+    }
+  } catch (err) {
+    console.log(err.message);
+    if (err.message === "invalid token") return res.sendStatus(401);
+    if (err.message === "jwt expired") return res.sendStatus(403);
+    return res.sendStatus(400);
+  }
+});
+
+app.post("/wishlist/:product_id", async (req, res) => {
+  try {
+    const authorization = req.headers["authorization"];
+    const token = authorization?.replace("Bearer ", "");
+    const privateKey = process.env.JWT_SECRET;
+
+    if (!token) throw Error("invalid token");
+
+    const sessionId = jwt.verify(token, privateKey).id;
+
+    const user_id = (
+      await connection.query(
+        `SELECT user_id
+        FROM sessions
+        WHERE id = $1`,
+        [sessionId]
+      )
+    ).rows[0].user_id;
+
+    const { product_id } = req.params;
+
+    await connection.query(
+      `INSERT INTO
+         wishlists (user_id, product_id)
+         VALUES
+         ($1, $2)`,
+      [user_id, product_id]
+    );
+    return res.sendStatus(201);
+  } catch (err) {
+    if (
+      err.message ===
+      'duplicate key value violates unique constraint "wishlist_unique"'
+    )
+      return res.sendStatus(403);
+    return res.sendStatus(400);
+  }
+});
+
 export default app;
