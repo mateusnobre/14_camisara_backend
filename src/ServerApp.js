@@ -213,16 +213,4 @@ app.get("/products", async (req, res) => {
   }
 });
 
-app.get("/products", async(req, res) => {
-  try {
-    const result = await connection.query(
-      `SELECT * 
-      FROM products `);
-    const data = result.rows[0];
-    return res.status(200).send(data);
-  } catch (error) {
-    return res.sendStatus(404);
-  }
-
-})
 export default app;
