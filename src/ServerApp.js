@@ -206,7 +206,7 @@ app.get("/products", async (req, res) => {
       `SELECT * 
       FROM products `
     );
-    const data = result.rows[0];
+    const data = result.rows;
     return res.status(200).send(data);
   } catch (error) {
     return res.sendStatus(404);
