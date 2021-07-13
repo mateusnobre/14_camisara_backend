@@ -16,7 +16,7 @@ export const loginSchema = Joi.object({
 });
 
 export const evaluationsSchema = Joi.object({
-  rating: Joi.number().required(),
+  rating: Joi.number().required().min(1).max(5),
   title: Joi.string().required(),
   opinion: Joi.string().required(),
 });
