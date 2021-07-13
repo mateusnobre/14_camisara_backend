@@ -229,11 +229,10 @@ app.post("/purchase/:product_id", async (req, res) => {
         [sessionId]
       )
     ).rows[0].user_id;
-
+i
     const { product_id } = req.params;
-    const { quantity } = req.body;
+    const quantity = req.body.quantity;
     const date = new Date();
-
     const searchQuery = await connection.query(
       `SELECT *
        FROM purchases
@@ -256,7 +255,7 @@ app.post("/purchase/:product_id", async (req, res) => {
          purchases (user_id, product_id, quantity, updated_at)
          VALUES
          ($1, $2, $3, $4)`,
-        [user_id, product_id, quantity, date]
+        [user_id, parseInt(product_id), quantity, date]
       );
       return res.sendStatus(201);
     }
