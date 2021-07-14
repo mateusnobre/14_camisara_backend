@@ -84,7 +84,7 @@ app.post("/login", async (req, res) => {
     return res.status(200).send({ user: userResponse, token });
   } catch (error) {
     if (error.message === "Authentication Error") return res.sendStatus(401);
-    return res.sendStatus(400);
+    return res.status(400).send(error);
   }
 });
 
@@ -230,7 +230,7 @@ app.post("/purchase/:product_id", async (req, res) => {
         [sessionId]
       )
     ).rows[0].user_id;
-i
+
     const { product_id } = req.params;
     const quantity = req.body.quantity;
     const date = new Date();
@@ -260,6 +260,7 @@ i
     }
     return res.sendStatus(200);
   } catch (err) {
+    console.log(err)
     if (err.message === "invalid token" || err.message === "invalid signature")
       return res.sendStatus(401);
     if (err.message === "jwt expired") return res.sendStatus(403);
